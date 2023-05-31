@@ -22,14 +22,15 @@ from dto.ClientRegistrationDetailEncoder import ClientRegistrationDetailEncoder
 from dto.PhoenixResponseCodes import PhoenixResponseCodes
 
 from utils.AuthUtils import AuthUtils
-from utils import Constants
 from utils.EllipticCurveUtils import EllipticCurveUtils
+from utils import Constants
 from utils import HttpUtil
 from utils import UtilMethods
 from cryptography.hazmat.primitives.asymmetric import rsa
 from base64 import b64encode
 from cryptography.hazmat.primitives import serialization, hashes
 import json
+from utils.CryptoUtils import CryptoUtils
 
 
 logger = getLogger("ClientRegistration")
@@ -71,22 +72,22 @@ def main():
 
     registration_response = json.loads(response)
 
-    if registration_response['responseCode'] != PhoenixResponseCodes.APPROVED.value[2]:
-        logger.info(
+    if registration_response['responseCode'] != PhoenixResponseCodes.APPROVED.value[0]:
+        print(
             f"Client Registration failed: {registration_response['responseMessage']}"
         )
     else:
         decrypted_session_key = CryptoUtils.decrypt_with_private(
-            registration_response['response']['server_session_public_key'], private_key
+            registration_response['response']['serverSessionPublicKey'], private_key
         )
-        terminal_key = curve_utils.do_ecdh(curve_private_key, decrypted_session_key)
-        logger.info("==============terminalKey==============")
-        logger.info(f"terminalKey: {terminal_key}")
+        terminal_key = EllipticCurveUtils.do_ecdh(curve_private_key,  decrypted_session_key)
+        print("==============terminalKey==============")
+        print(f"terminalKey: {terminal_key}")
         auth_token = CryptoUtils.decrypt_with_private(
             registration_response['response']['authToken'], private_key
         )
         transaction_reference = registration_response['response']['transactionReference']
-        logger.info("Enter received OTP: ")
+        print("Enter received OTP: ")
         otp = stdin.readline().strip()
         final_response = complete_registration(
             terminal_key, auth_token, transaction_reference, otp, private_key
@@ -99,9 +100,9 @@ def main():
                 response['response']['clientSecret'], private_key
             )
             if client_secret and len(client_secret) > 5:
-                logger.info(f"clientSecret: {client_secret}")
+                print(f"clientSecret: {client_secret}")
         else:
-            logger.info(f"finalResponse: {response['responseMessage']}")
+            print(f"finalResponse: {response['responseMessage']}")
 
 def client_registration_request(publicKey, clientSessionPublicKey, privateKey):
     setup = ClientRegistrationDetail()

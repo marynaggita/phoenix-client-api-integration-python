@@ -49,7 +49,7 @@ class CryptoUtils:
             return secret.decode('utf-8')
         except Exception as e:
             print('Exception trace:', e)
-            raise SystemApiException(PhoenixResponseCodes.INTERNAL_ERROR.CODE, "Failure to decryptWithPrivate ")
+            
     
     @staticmethod
     def encrypt_with_private(plaintext, private_key):
@@ -68,7 +68,8 @@ class CryptoUtils:
         # private_key_bytes = private_key.encode('utf-8')
         # key = load_pem_private_key(private_key_bytes, password=None)
 
-        signer = private_key.signer(padding.PKCS1v15(), hashes.SHA256())
-        signer.update(data.encode('utf-8'))
-        signature = signer.finalize()
-        return base64.b64encode(signature).decode('utf-8')
+        signer = private_key.sign(data.encode('utf-8'),padding.PKCS1v15(), hashes.SHA256())
+        #signer.update(data.encode('utf-8'))
+       # signature = signer.finalize()
+        return base64.b64encode(signer).decode('utf-8')
+
